@@ -48,7 +48,7 @@ Unix 提供了大量的从 C 程序中操作进程的**系统调用**。
 
 [1] 获取进程 ID
 
-```
+```cpp
 pid_t getpid(void); // 获取调用进程的 PID
 pid_t getppid(void); // 获取父进程的 PID
 ```
@@ -63,21 +63,21 @@ pid_t getppid(void); // 获取父进程的 PID
 
 终止进程：
 
-```
+```cpp
 void exit(int status); // 以 status 退出状态结束
 // 或者从 main 函数返回
 ```
 
 创建进程：
 
-```
+```cpp
 #include <sys/types.h> // pid_t 等被定义在这个头文件中
 pid_t fork(void);
 ```
 
 * fork 函数很特殊，一次调用，会产生两个返回值；我们用一个例子说明
 
-```
+```cpp
 int main() {
     pid_t = pid;
 
@@ -116,7 +116,7 @@ int main() {
 * waitpid 函数（定义在 sys/wait.h 中）
     * 默认情况下，它会挂起调用进程，直到它等待 wait set 中的一个子进程终止（如果已经有子进程提前终止，则不需要等待）
 
-```
+```cpp
 #include <sys/wait.h>
 
 pid_t waitpid(pid_t pid, int *statusp, int options);
@@ -129,7 +129,7 @@ pid_t waitpid(pid_t pid, int *statusp, int options);
 
 * wait 函数
 
-```
+```cpp
 pid_t wait(int *statusp) //  等价于 waitpid 的默认形式：waitpid(-1, &status, 0);
 ```
 
@@ -142,7 +142,7 @@ pid_t wait(int *statusp) //  等价于 waitpid 的默认形式：waitpid(-1, &s
 
 * execve
 
-```
+```cpp
 int execve(const char *filename, const char *argv[], const char *envp[]);
 ```
 
@@ -183,7 +183,7 @@ int execve(const char *filename, const char *argv[], const char *envp[]);
 
 每个信号都有一个默认的处理逻辑，但除 SIGSTOP 和 SIGKILL 以外的信号，我们都可以修改其默认行为；详细的默认行为定义见：《CS: APP》p527
 
-```
+```cpp
 #include <signal.h>
 typedef void (*sighandler_t)(int)
 
@@ -209,7 +209,7 @@ int main() {
 
 如上文所说的 pending 和 blocked 位向量，信号的阻塞其实就是操作 blocked 位向量，设置其某些位，以使该位代表的信号被阻塞；signal.h 中提供了一系列函数来操作：
 
-```
+```cpp
 #include <signal.h>
 
 int sigprocmask(int how, const sigset_t *set, sigset_t *old_set);
@@ -231,7 +231,7 @@ int sigismember(const sigset_t *set, int signum);
 
 * 用一个例子来说用法：
 
-```
+```cpp
 sigset_t mask, old_mask;
 
 // 将 SIGINT 信号添加到 set 中去
@@ -289,7 +289,7 @@ sigprocmask(SIG_SETMASK, old_mask, NULL);
 
 * 用全局标志位来表明信号的到来：在信号处理程序中改变标志位，以告知主程序，主程序则循环等待
 
-```
+```cpp
 // 主程序第一次到这儿时，flag 为 0
 // 信号到了过后，信号处理程序会将 flag 置 1
 while (!flag); // 这就是一个空循环，一直忙等
@@ -298,7 +298,7 @@ while (!flag); // 这就是一个空循环，一直忙等
 
 * 这样的操作太浪费资源了，我们可以用 sleep 或 pause 来减少浪费
 
-```
+```cpp
 while (!flag) {
     sleep(1);
 }
@@ -312,7 +312,7 @@ while (!flag) {
 
 * 用 sigsuspend 函数：这是一个原子操作，挂起当前进程，等待 mask 中没有阻塞的信号
 
-```
+```cpp
 #include <signal.h>
 
 int sigsuspend(const sigset_t *mask);
@@ -329,7 +329,7 @@ sigprocmask(SIT_SETMASK, &prev, NULL); // 解除阻塞
 
 两个特殊的函数实现：setjmp 和 longjmp
 
-```
+```cpp
 #include <setjmp.h>
 
 int setjmp(jmpbuf env);
@@ -343,7 +343,7 @@ void siglongjmp(sigjmpbuf env, int retval);
 * 使用 setjmp 存下当前运行状态到全局变量 buf 中，在调用 longjmp 时，程序会重新回到调用 setjmp 的那个地方，返回值为 1；
 * 谨慎使用，以下为一个实现程序软重启的例子
 
-```
+```cpp
 sigjmp_buf buf;
 
 void handler(int sig)
