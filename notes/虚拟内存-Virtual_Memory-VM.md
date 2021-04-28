@@ -14,12 +14,12 @@
 
 其实，虚拟内存就是在磁盘上的一个大数组，按说磁盘够快的话，也不用这些复杂的缓存了；问题就是不够快，所以我们把部分页缓存在内存上，来加速访问。我们用数据结构页表（page table）来实现缓存的判断，每个条目称为一个 PTE （Page Table Entry）：
 
-```
+```cpp
 // 简易页表结构
 // 首位为标记位，标记是否缓存在 DRAM 中
 | 1 |       addr_dram       | // 该页已缓存在 DRAM 中，起始地址为 addr_dram
-| 0 |       addr_disk         | // 未缓存在 DRAM 中，磁盘上的地址为 addr_disk
-| 0 |            null             | // 这个页还未分配
+| 0 |       addr_disk       | // 未缓存在 DRAM 中，磁盘上的地址为 addr_disk
+| 0 |          null         | // 这个页还未分配
 ```
 
 **再看 CPU 访问虚拟地址的例子。**CPU 发出访问虚拟地址 VP 的指令，MMU 结合 CR3（页表基址控制寄存器）找到对应的页表，查询到对应页的缓存情况，然后翻译为物理地址或触发缺页异常，最后从内存中取回数据。
@@ -48,7 +48,7 @@
 
 实际上的页表并非像前述的那么简单，PTE 还有很多其他的位用来标记一些权限问题，如：
 
-```
+```cpp
 // 用页表保护内存的大致思想
 // SUP 表示只能由内核态访问
 // READ 表示读权限
@@ -69,7 +69,7 @@
 
 虚拟地址（VA）分为虚拟页号（Virtual Page Number / VPN）和虚拟页偏移量（Virtual Page Offset / VPO）；VPN 用来指定在某一页表中的页表条目号（PTE），VPO 用来表示指定地址相对页开头的偏移量；注意：此处的页表由页表基址寄存器（PTBR）指定。
 
-```
+```cpp
 // VA
 n-1        p p-1        0
 |    VPN    |    VPO    |
@@ -78,7 +78,7 @@ n-1        p p-1        0
 
 物理地址（PA）分为物理页号（Physical Page Number / PPN）和物理页偏移量（Physical Page Offset / PPO）
 
-```
+```cpp
 // PA
 m-1        p p-1        0
 |    PPN    |    PPO    |
@@ -95,7 +95,7 @@ m-1        p p-1        0
 
 每次都去内存中取 PTE 的开销比较大，我们在 MMU 中加入一个物理缓存，将最近用过的 PTE 都存起来，称作 Translation Lookaside Buffer（TLB）。TLB 的索引直接使用 VPN 中的特定位：
 
-```
+```cpp
 // TLB
 n-1                    p p-1        0
 |          VPN          |    VPO    |
@@ -197,7 +197,7 @@ Linux 通过将虚拟内存区域与磁盘上的一个对象关联起来，以�
 
 [4] 使用 mmap 函数
 
-```
+```cpp
 #include <unistd.h>
 #include <sys/mman.h>
 
@@ -223,7 +223,7 @@ void *mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset
 
 C 中的动态分配函数
 
-```
+```cpp
 #include <stdlib.h>
 
 void *malloc(size_t size); // 分配一个 size 字节的块，若成功则返回分配块的指针，失败则返回 NULL // malloc 可以使用 mmap, munmap 或 sbrk 系统调用来实现
@@ -269,18 +269,18 @@ void free(void *ptr); // 释放一个已分配的块，ptr 必须是块的起始
 
 隐式，就是说空闲块之间并没有直接相连，得去看才知道这个块是不是空闲的；我们给每个块加上这样的标注，让其成为一个链表：
 
-```
+```cpp
 // 隐式空闲链表 header
 31           3 2 1 0
 |        块大小        | 0  0  1|
 
 // 内容 及 填充
-|              块内容              |
-|               填充                 |
+|            块内容             |
+|             填充              |
 
 // 隐式空闲链表 footer
-31                      3  2  1  0
-|        块大小       | 0  0  1|
+31                    3  2  1  0
+|         块大小       | 0  0  1|
 ```
 
 *** 注意：我们要求块大小双字对齐的话，header 和 footer 的第三位必然为 0，所以我们用他们来记录空闲与否，1 为分配了，0 为空闲

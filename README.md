@@ -10,6 +10,7 @@ self learning csapp, notes, code and labs
 ## notes
 
 * [ECF](./notes/异常控制流-Exceptional_Control_Flow-ECF.md)
+* [VM](./notes/虚拟内存-Virtual_Memory-VM.md)
 
 ## labs
 
