@@ -15,3 +15,4 @@ self learning csapp, notes, code and labs
 ## labs
 
 * [Shell Lab](./labs/shell/)
+* [Malloc Lab](./labs/malloc/)
