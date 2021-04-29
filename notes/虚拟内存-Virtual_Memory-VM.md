@@ -212,6 +212,17 @@ void *mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset
 
 详见：《CS: APP》p586
 
+我用 mmap 函数对内存映射进行了一些小测试（[code](../codes/mmap.cpp/)），对以上内容可以再有一些总结：
+
+* 在 Linux 中，mmap 的大小可以大于文件的大小，多的会被补 0 填充
+* 私有对象
+    * 不会写回磁盘
+    * 子进程与父进程都是写时复制，自然不会干扰
+* 共享对象
+    * 会写回磁盘，应该有一个单独的内核控制的进程在处理
+    * 写回的方式应该是之前讲述的牺牲的方式，dirty 的页会在 write queue 上等待被写回磁盘
+    * 也可以用 MAP_SYNC 强制写回，它会阻塞 munmap，直到写回完毕
+
 **动态内存分配概述 —— 漂亮地维护一个虚拟内存区域**
 
 ---
